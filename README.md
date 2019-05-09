@@ -10,3 +10,12 @@ https://www.cs.usfca.edu/~galles/visualization/RedBlack.html
 ## free lock fifo
 
 
+# build
+1. make build
+2. cd build
+3. >Debug=>cmake3 -DCMAKE_BUILD_TYPE=Debug ../
+   >
+   >Release=>cmake3 -DCMAKE_BUILD_TYPE=Release ../
+   >
+   >cmake3 ../    =>Debug
+4.  you will find binary file at "bin" directory   
