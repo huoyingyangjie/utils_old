@@ -26,11 +26,14 @@ static char * get_version_branch(){
     return VERSION_BRANCH;
 }
 
+static char * get_build_timestamp(){
+    return BUILD_TIMESTAMP;
+}
 
 
 char * strfversion(){
     static char version[VERSION_FMT_LEN]="";
-    snprintf(version,VERSION_FMT_LEN,"%d.%d %s %s",get_major_version(),get_minor_version(),get_version_branch(),get_version_hash());
+    snprintf(version,VERSION_FMT_LEN,"%d.%d %s %s at %s",get_major_version(),get_minor_version(),get_version_branch(),get_version_hash(),get_build_timestamp());
     return version;
 }
 

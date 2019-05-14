@@ -14,16 +14,22 @@ else()
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
-aux_source_directory(./src/utils/ utils_src)
-include_directories(./include/utils/)
-add_library(utils SHARED ${utils_src} include/utils/gversion.h include/utils/debug.h)
-add_library(utils_static STATIC ${utils_src})
-set_target_properties(utils_static PROPERTIES OUTPUT_NAME utils)
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin/utils)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin/utils)
+aux_source_directory(./src/utils/ utils_src)
+include_directories(./include/utils/)
+add_library(utils SHARED ${utils_src})
+add_library(utils_static STATIC ${utils_src})
+set_target_properties(utils_static PROPERTIES OUTPUT_NAME utils)
+
 
 
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin/test)
 
+aux_source_directory(./src/test/version version_src)
+include_directories(./include/)
+add_executable(version ${version_src})
+target_link_libraries(version utils)

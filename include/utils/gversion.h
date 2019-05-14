@@ -13,4 +13,6 @@
 
 #define VERSION_BRANCH  "null"
 
+#define BUILD_TIMESTAMP  "null"
+
 #endif //UTILS_GVERSION_H
