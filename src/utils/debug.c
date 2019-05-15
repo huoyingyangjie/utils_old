@@ -16,6 +16,7 @@
 #include <execinfo.h>
 #include "debug.h"
 #include <pthread.h>
+#include <stdlib.h>
 
 #define BACKTRACE_SIZE (16U)
 #define FILE_NAME_WIDTH (3U)
@@ -78,7 +79,7 @@ void debug_print(const char *level,const char *file,const int line,const char *f
 
     ptn:
 
-    printf("[%s][%s][%-4d][%-7d][% 7ld][%s]:",ts,name,line,getpid(),syscall(__NR_gettid),level);
+    printf("[%s][%s][%-4d][%-7d][%-7ld][%s]:",ts,name,line,getpid(),syscall(__NR_gettid),level);
 
     va_start(args,fmt);
     vprintf(fmt,args);
@@ -86,4 +87,42 @@ void debug_print(const char *level,const char *file,const int line,const char *f
     va_end(args);
     pthread_mutex_unlock(&debug_mutex);
 
+}
+
+static void segv_backtrace(int signo){
+    int i,nptrs;
+    void *buffer[BACKTRACE_SIZE];
+    char **strings;
+    nptrs=backtrace(buffer,BACKTRACE_SIZE);
+    ERR("segment fault,as follows:");
+    printf("Dump stack start...\n");
+    printf("backtrace() returned %d addresses\n",nptrs);
+
+    strings=backtrace_symbols(buffer,nptrs);
+    if(strings==NULL)
+    {
+        ERR("backtrace_symbols failed,\"man backtrace_symbols\" no errno");
+        goto exit;
+    }
+
+    for(i=0;i<nptrs;++i){
+        printf(" [%02d] %s\n",i,strings[i]);
+    }
+
+    free(strings);
+
+    printf("Dump stack end...\n");
+
+    exit:
+
+    signal(signo,SIG_DFL);
+
+    raise(signo);
+
+}
+
+void segv_dump(){
+    struct sigaction sig_act;
+    sig_act.sa_handler=segv_backtrace;
+    sigaction(SIGSEGV,&sig_act,NULL);
 }
