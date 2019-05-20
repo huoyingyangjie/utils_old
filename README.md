@@ -4,6 +4,7 @@ Contains some algorithms and tools
  [rbtree](#rbtree) , [free lock fifo](), [debug]() , [xtri]()
 ## rbtree
 ### idea
+https://www.jianshu.com/p/0319d7781814
 https://blog.csdn.net/fei33423/article/details/79132930
 ### visual view
 https://www.cs.usfca.edu/~galles/visualization/RedBlack.html
