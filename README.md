@@ -20,3 +20,7 @@ https://www.cs.usfca.edu/~galles/visualization/RedBlack.html
    >
    >cmake3 ../    =>Debug
 4.  you will find binary file at "bin" directory   
+
+# hash 知识 
+
+https://www.cnblogs.com/Liqiongyu/p/6213323.html
