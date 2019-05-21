@@ -26,3 +26,5 @@ https://www.cs.usfca.edu/~galles/visualization/RedBlack.html
 https://www.cnblogs.com/Liqiongyu/p/6213323.html
 ## 2.一致性hash
 https://www.cnblogs.com/lpfuture/p/5796398.html
+## 3.B+树
+感觉是为了数据库快速查找和遍历准备的
