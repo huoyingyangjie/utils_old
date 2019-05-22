@@ -33,3 +33,8 @@ aux_source_directory(./src/test/version version_src)
 include_directories(./include/)
 add_executable(version ${version_src})
 target_link_libraries(version utils)
+
+aux_source_directory(./src/test/rbtree rbtree_src)
+include_directories(./include/)
+add_executable(rbtree ${rbtree_src})
+target_link_libraries(rbtree utils)

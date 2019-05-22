@@ -10,4 +10,6 @@
 
 #define ABS_INLINE static __inline__ __attribute__((always_inline))
 
+#define offsetof(type,member) __buildin_offsetof(type,member)
+
 #endif //UTILS_SYS_H
