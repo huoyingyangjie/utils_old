@@ -11,91 +11,112 @@
 #include "sys.h"
 
 
-enum rbcolor{
-    RB_RED=0,
-    RB_BLACK=1,
-};
+
+#define RB_RED   (0UL)
+#define RB_BLACK (1UL)
+
 
 struct rbnode {
-    uint64_t key;
-    void * data;
-    struct rbnode * left;
-    struct rbnode * right;
-    enum rbcolor color;
+    uint64_t color;
+    struct rbnode *  left;
+    struct rbnode *  right;
+    struct rbnode *  parent;
+    struct rbnode ** parent_leg;
 };
 
 
+struct rbroot {
+    struct rbnode * rbnode;
+};
 
-/*
- * @return:last node
- *
- * */
-
-
-ABS_INLINE struct rbnode * __rbtree_insert_find(struct rbnode * root,uint64_t key){
-    struct rbnode * tmp=root;
-    struct rbnode * last=tmp;
-    while(tmp!=NULL){
-        if(tmp->key==key)
-            return NULL;
-        last=tmp;
-        tmp=tmp->key > key?tmp->left:tmp->right;
-    }
-    return last;
-}
-
-
-/*
- * @return: root node
- *
- * */
-
-ABS_INLINE struct rbnode *rbtree_insert(struct rbnode *root, struct rbnode * node){
-
-    struct rbnode * last;
-
-
+ABS_INLINE void rbtree_init_node(struct rbnode * node){
     node->color=RB_RED;
-    node->left=NULL;
+    node->parent=NULL;
     node->right=NULL;
-
-
-    if(unlikely(root!=NULL))
-    {
-        node->color=RB_BLACK;
-        return node;
-    }
-
-    last=__rbtree_insert_find(root,node->key);
-
-    if(last==NULL)
-        return NULL;
-
-
-
-
-    return 0;
-
+    node->left=NULL;
 }
-
-
 
 /*
- * @return: NULL ->don't find , other -> find
+ * initialize red black tree root node , make it as empty tree
  *
  * */
-ABS_INLINE struct rbnode * rbtree_find(struct rbnode * root,uint64_t key){
 
-    struct rbnode * tmp=root;
+ABS_INLINE void rbtree_init_root(struct rbroot * root){
+    root->rbnode=NULL;
+}
 
-    while(tmp!=NULL){
-        if(tmp->key==key)
-            return tmp;
-        tmp=tmp->key > key?tmp->left:tmp->right;
+
+ABS_INLINE void __rbtree_insert_fix(struct rbroot * root,struct rbnode * parent,struct rbnode * node){
+
+    struct rbnode * pp;
+
+    if(parent->color==RB_BLACK){
+        return;
     }
 
-    return tmp;
+    pp=parent->parent;
+
+    if(pp->parent!=NULL)
+    {
+        parent->parent_leg=pp->parent_leg;
+        *(pp->parent_leg)=parent;
+        pp->parent=parent;
+        pp->parent_leg=&parent->right;
+        pp->left=pp->right;
+        parent->right=pp;
+        parent->parent=pp;
+        pp->color=RB_BLACK;
+        parent->color=RB_RED;
+        node->color=RB_BLACK;
+
+        if(parent->parent==RB_RED){
+            if(  (*parent->parent_leg)== parent->parent->right )
+                rbtree_insert_right(root,parent->parent,parent);
+            rbtree_insert_left(root,parent->parent,parent);
+        }
+        return;
+    }
+
+    pp->parent=parent;
+    pp->parent_leg=&parent->right;
+    pp->left=pp->right;
+    parent->parent_leg=NULL;
+    parent->parent=NULL;
+    parent->right=pp;
+    parent->color=RB_BLACK;
+    node->color=RB_BLACK;
+    pp->color=RB_BLACK;
+
+    //set root
+    root->rbnode=parent;
+
+    return;
 }
+
+
+ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,struct rbnode * node){
+
+    parent->left=node;
+    node->parent=parent;
+    node->parent_leg=&parent->left;
+
+    __rbtree_insert_fix(root,parent,node);
+
+    return ;
+}
+
+ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,struct rbnode * node){
+
+    parent->right=parent->left;
+    parent->left=node;
+    node->parent=parent;
+    node->parent_leg=&parent->left;
+
+    __rbtree_insert_fix(root,parent,node);
+
+    return;
+}
+
 
 
 #endif //UTILS_RBTREE_H
