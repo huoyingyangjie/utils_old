@@ -49,11 +49,7 @@ ABS_INLINE void rbtree_init_root(struct rbroot * root){
 ABS_INLINE void __rbtree_insert_fix(struct rbroot * root,struct rbnode * parent,struct rbnode * node){
 
     struct rbnode * pp;
-
-    if(parent->color==RB_BLACK){
-        return;
-    }
-
+    
     pp=parent->parent;
 
     if(pp->parent!=NULL)
@@ -70,9 +66,13 @@ ABS_INLINE void __rbtree_insert_fix(struct rbroot * root,struct rbnode * parent,
         node->color=RB_BLACK;
 
         if(parent->parent==RB_RED){
-            if(  (*parent->parent_leg)== parent->parent->right )
-                rbtree_insert_right(root,parent->parent,parent);
-            rbtree_insert_left(root,parent->parent,parent);
+            pp=parent->parent;
+            if(  (*parent->parent_leg)== pp->left )
+                __rbtree_insert_fix(root,pp,parent);
+
+            pp->right=pp->left;
+            pp->left=parent;
+            __rbtree_insert_fix(root,pp,parent);
         }
         return;
     }
@@ -100,6 +100,10 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
     node->parent=parent;
     node->parent_leg=&parent->left;
 
+    if(parent->color==RB_BLACK){
+        return;
+    }
+
     __rbtree_insert_fix(root,parent,node);
 
     return ;
@@ -111,6 +115,10 @@ ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,
     parent->left=node;
     node->parent=parent;
     node->parent_leg=&parent->left;
+
+    if(parent->color==RB_BLACK){
+        return;
+    }
 
     __rbtree_insert_fix(root,parent,node);
 
