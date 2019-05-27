@@ -21,7 +21,6 @@ struct rbnode {
     struct rbnode *  left;
     struct rbnode *  right;
     struct rbnode *  parent;
-    struct rbnode ** parent_leg;
 };
 
 
@@ -47,14 +46,11 @@ ABS_INLINE void rbtree_init_root(struct rbroot * root){
 
 
 ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,struct rbnode * node){
-
     struct rbnode * uncle;
     struct rbnode * pp;
     struct rbnode * ppp;
 
-    DIE("goto die");
-
-    again:
+    at_left:
 
     if(parent->color==RB_BLACK) {
         parent->left = node;
@@ -69,9 +65,9 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
         if(uncle==NULL || uncle->color==RB_BLACK){
             ppp=pp->parent;
 
+            pp->left=parent->right;
             parent->left=node;
             pp->parent=parent;
-            pp->left=NULL;
             parent->right=pp;
             node->parent=parent;
             parent->color=RB_BLACK;
@@ -84,10 +80,10 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
             }
 
 
-            if(ppp->right==pp){
+            if(ppp->right==pp)
                 ppp->right=parent;
-            }
-            ppp->left=parent;
+            else
+                ppp->left=parent;
             parent->parent=ppp;
             return;
 
@@ -98,7 +94,7 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
 
             parent->color=RB_BLACK;
             uncle->color=RB_BLACK;
-            pp->color=RB_RED;
+
 
             ppp=pp->parent;
 
@@ -109,9 +105,14 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
                 return;
             }
 
+            pp->color=RB_RED;
+
             node=pp;
             parent=ppp;
-            goto again;
+            if(parent->right==node)
+                goto at_right;
+            else
+                goto at_left;
         }
 
 
@@ -120,23 +121,25 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
         if(uncle==NULL || uncle->color==RB_BLACK){
             ppp=pp->parent;
 
+            pp->parent=node;
+            pp->right=NULL;
+            node->left=pp;
+            node->right=parent;
+            node->color=RB_BLACK;
+            pp->color=RB_RED;
+
             if(ppp==NULL){
                 root->rbnode=node;
                 parent->parent=node;
-                pp->parent=node;
-                pp->right=NULL;
-                node->left=pp;
-                node->right=parent;
-                node->color=RB_BLACK;
-                pp->color=RB_RED;
+
                 return;
             }
 
 
-            if(ppp->right==pp){
+            if(ppp->right==pp)
                 ppp->right=node;
-            }
-            ppp->left=node;
+            else
+                ppp->left=node;
             node->parent=ppp;
             return;
 
@@ -147,7 +150,7 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
 
             parent->color=RB_BLACK;
             uncle->color=RB_BLACK;
-            pp->color=RB_RED;
+
 
             ppp=pp->parent;
 
@@ -158,24 +161,19 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
                 return;
             }
 
+            pp->color=RB_RED;
+
             node=pp;
             parent=ppp;
-            goto again;
+            if(parent->right==node)
+                goto at_right;
+            else
+                goto at_left;
         }
 
     }
 
-
-
-
-}
-
-ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,struct rbnode * node){
-    struct rbnode * uncle;
-    struct rbnode * pp;
-    struct rbnode * ppp;
-
-    again:
+    at_right:
 
     if(parent->color==RB_BLACK) {
         parent->right = node;
@@ -239,7 +237,11 @@ ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,
 
             node=pp;
             parent=ppp;
-            goto again;
+
+            if(parent->right==node)
+                goto at_right;
+            else
+                goto at_left;
         }
 
 
@@ -296,130 +298,272 @@ ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,
             node=pp;
             parent=ppp;
             if(parent->right==node)
-                goto again;
-            else{
-                again2:
-                if(parent->color==RB_BLACK) {
-                    parent->left = node;
-                    node->parent = parent;
-                    return;
-                }
+                goto at_right;
+            else
+                goto at_left;
+        }
 
-                pp=parent->parent;
+    }
 
-                if(parent==pp->left){
-                    uncle=pp->right;
-                    if(uncle==NULL || uncle->color==RB_BLACK){
-                        ppp=pp->parent;
+}
 
-                        pp->left=parent->right;
-                        parent->left=node;
-                        pp->parent=parent;
-                        parent->right=pp;
-                        node->parent=parent;
-                        parent->color=RB_BLACK;
-                        pp->color=RB_RED;
+ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,struct rbnode * node){
+    struct rbnode * uncle;
+    struct rbnode * pp;
+    struct rbnode * ppp;
 
-                        if(ppp==NULL){
-                            root->rbnode=parent;
-                            parent->parent=NULL;
-                            return;
-                        }
+    at_right:
+
+    if(parent->color==RB_BLACK) {
+        parent->right = node;
+        node->parent = parent;
+        return;
+    }
+
+    pp=parent->parent;
 
 
-                        if(ppp->right==pp)
-                            ppp->right=parent;
-                        else
-                             ppp->left=parent;
-                        parent->parent=ppp;
-                        return;
+    if(parent==pp->left){
+        uncle=pp->right;
+        if(uncle==NULL || uncle->color==RB_BLACK){
 
-                    } else{
+            DBG("into parent left , uncle black");
 
-                        parent->left=node;
-                        node->parent=parent;
+            ppp=pp->parent;
 
-                        parent->color=RB_BLACK;
-                        uncle->color=RB_BLACK;
+            node->left=parent;
+            node->right=pp;
+            pp->parent=node;
+            parent->parent=node;
+            pp->left=NULL;
 
+            pp->color=RB_RED;
+            node->color=RB_BLACK;
 
-                        ppp=pp->parent;
-
-                        if(ppp==NULL)
-                        {
-                            root->rbnode=pp;
-                            pp->color=RB_BLACK;
-                            return;
-                        }
-
-                        pp->color=RB_RED;
-
-                        node=pp;
-                        parent=ppp;
-                        if(parent->right==node)
-                            goto again;
-                        else
-                            goto again2;
-                    }
-
-
-                } else{
-                    uncle=pp->left;
-                    if(uncle==NULL || uncle->color==RB_BLACK){
-                        ppp=pp->parent;
-
-                        pp->parent=node;
-                        pp->right=NULL;
-                        node->left=pp;
-                        node->right=parent;
-                        node->color=RB_BLACK;
-                        pp->color=RB_RED;
-
-                        if(ppp==NULL){
-                            root->rbnode=node;
-                            parent->parent=node;
-
-                            return;
-                        }
-
-
-                        if(ppp->right==pp)
-                            ppp->right=node;
-                        else
-                            ppp->left=node;
-                        node->parent=ppp;
-                        return;
-
-                    } else{
-
-                        parent->left=node;
-                        node->parent=parent;
-
-                        parent->color=RB_BLACK;
-                        uncle->color=RB_BLACK;
-
-
-                        ppp=pp->parent;
-
-                        if(ppp==NULL)
-                        {
-                            root->rbnode=pp;
-                            pp->color=RB_BLACK;
-                            return;
-                        }
-
-                        pp->color=RB_RED;
-
-                        node=pp;
-                        parent=ppp;
-                        if(parent->right==node)
-                            goto again;
-                        else
-                            goto again2;
-                    }
-
-                }
+            if(ppp==NULL){
+                root->rbnode=node;
+                return;
             }
+
+
+            if(ppp->right==pp)
+                ppp->right=node;
+            else
+                ppp->left=node;
+            node->parent=ppp;
+            return;
+
+        } else{
+
+            DBG("into parent left , uncle red");
+            parent->right=node;
+            node->parent=parent;
+
+            parent->color=RB_BLACK;
+            uncle->color=RB_BLACK;
+
+
+            ppp=pp->parent;
+
+            if(ppp==NULL)
+            {
+                root->rbnode=pp;
+                pp->color=RB_BLACK;
+                return;
+            }
+
+            pp->color=RB_RED;
+
+            node=pp;
+            parent=ppp;
+
+            if(parent->right==node)
+                goto at_right;
+            else
+                goto at_left;
+        }
+
+
+    } else{
+        uncle=pp->left;
+        if(uncle==NULL || uncle->color==RB_BLACK){
+
+            DBG("into parent right , uncle black");
+
+            ppp=pp->parent;
+
+            pp->right=parent->left;
+            parent->left=pp;
+            parent->right=node;
+            pp->parent=parent;
+            parent->color=RB_BLACK;
+            pp->color=RB_RED;
+            node->parent=parent;
+
+            if(ppp==NULL){
+                root->rbnode=parent;
+                parent->parent=NULL;
+                return;
+            }
+
+
+            if(ppp->right==pp)
+                ppp->right=parent;
+            else
+                ppp->left=parent;
+            parent->parent=ppp;
+            return;
+
+        } else{
+            DBG("into parent right , uncle red");
+            parent->right=node;
+            node->parent=parent;
+
+            parent->color=RB_BLACK;
+            uncle->color=RB_BLACK;
+
+
+            ppp=pp->parent;
+
+            if(ppp==NULL)
+            {
+                root->rbnode=pp;
+                pp->color=RB_BLACK;
+                return;
+            }
+
+            pp->color=RB_RED;
+
+            node=pp;
+            parent=ppp;
+            if(parent->right==node)
+                goto at_right;
+            else
+                goto at_left;
+        }
+
+    }
+
+
+    at_left:
+
+    if(parent->color==RB_BLACK) {
+        parent->left = node;
+        node->parent = parent;
+        return;
+    }
+
+    pp=parent->parent;
+
+    if(parent==pp->left){
+        uncle=pp->right;
+        if(uncle==NULL || uncle->color==RB_BLACK){
+            ppp=pp->parent;
+
+            pp->left=parent->right;
+            parent->left=node;
+            pp->parent=parent;
+            parent->right=pp;
+            node->parent=parent;
+            parent->color=RB_BLACK;
+            pp->color=RB_RED;
+
+            if(ppp==NULL){
+                root->rbnode=parent;
+                parent->parent=NULL;
+                return;
+            }
+
+
+            if(ppp->right==pp)
+                ppp->right=parent;
+            else
+                ppp->left=parent;
+            parent->parent=ppp;
+            return;
+
+        } else{
+
+            parent->left=node;
+            node->parent=parent;
+
+            parent->color=RB_BLACK;
+            uncle->color=RB_BLACK;
+
+
+            ppp=pp->parent;
+
+            if(ppp==NULL)
+            {
+                root->rbnode=pp;
+                pp->color=RB_BLACK;
+                return;
+            }
+
+            pp->color=RB_RED;
+
+            node=pp;
+            parent=ppp;
+            if(parent->right==node)
+                goto at_right;
+            else
+                goto at_left;
+        }
+
+
+    } else{
+        uncle=pp->left;
+        if(uncle==NULL || uncle->color==RB_BLACK){
+            ppp=pp->parent;
+
+            pp->parent=node;
+            pp->right=NULL;
+            node->left=pp;
+            node->right=parent;
+            node->color=RB_BLACK;
+            pp->color=RB_RED;
+
+            if(ppp==NULL){
+                root->rbnode=node;
+                parent->parent=node;
+
+                return;
+            }
+
+
+            if(ppp->right==pp)
+                ppp->right=node;
+            else
+                ppp->left=node;
+            node->parent=ppp;
+            return;
+
+        } else{
+
+            parent->left=node;
+            node->parent=parent;
+
+            parent->color=RB_BLACK;
+            uncle->color=RB_BLACK;
+
+
+            ppp=pp->parent;
+
+            if(ppp==NULL)
+            {
+                root->rbnode=pp;
+                pp->color=RB_BLACK;
+                return;
+            }
+
+            pp->color=RB_RED;
+
+            node=pp;
+            parent=ppp;
+            if(parent->right==node)
+                goto at_right;
+            else
+                goto at_left;
         }
 
     }

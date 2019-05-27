@@ -26,6 +26,7 @@ void test_rbtree_insert_and_find(){
 
     struct rbnode64 nodes[NODE_NUMBER];
 
+    uint64_t keys[]={5,10,15,20,25,30,35,40,45,50,55,60,53,52,44,39,29,19,9,8};
 
 
     while (i<NODE_NUMBER)
@@ -34,7 +35,7 @@ void test_rbtree_insert_and_find(){
         if(node==NULL)
             DIE("malloc failed=%s",strerror(errno));
         rbtree_init_node(&node->node);
-        node->key=i;
+        node->key=keys[i];
         INF("inserting node-->%lu",node->key);
         rbtree64_insert(&root,node);
         ++i;
