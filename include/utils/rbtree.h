@@ -50,62 +50,84 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
     struct rbnode * pp;
     struct rbnode * ppp;
 
-    at_left:
 
+    //parent is black
     if(parent->color==RB_BLACK) {
         parent->left = node;
         node->parent = parent;
         return;
     }
 
+    at_left:
+
     pp=parent->parent;
+    ppp=pp->parent;
+
+
 
     if(parent==pp->left){
         uncle=pp->right;
         if(uncle==NULL || uncle->color==RB_BLACK){
-            ppp=pp->parent;
-
-            pp->left=parent->right;
-            parent->left=node;
-            pp->parent=parent;
-            parent->right=pp;
+            DBG("parent is left,uncle black");
+            //set I
             node->parent=parent;
+
+            //set parent
             parent->color=RB_BLACK;
+            parent->left=node;
+            pp->left=parent->right;//special
+            if(parent->right!=NULL)
+                parent->right->parent=pp;
+            parent->right=pp;
+            parent->parent=ppp;
+
+            //set pp
+            pp->parent=parent;
             pp->color=RB_RED;
 
+            //set parent parent
+            //@case1
             if(ppp==NULL){
                 root->rbnode=parent;
-                parent->parent=NULL;
                 return;
             }
-
-
+            //@case2
             if(ppp->right==pp)
                 ppp->right=parent;
             else
                 ppp->left=parent;
-            parent->parent=ppp;
+
             return;
+
 
         } else{
 
-            parent->left=node;
+            DBG("parent is left,uncle red");
+
+            //set I
             node->parent=parent;
 
+            //set parent
             parent->color=RB_BLACK;
+            parent->left=node;
+
+            //set uncle
             uncle->color=RB_BLACK;
 
-
-            ppp=pp->parent;
-
+            //set pp
+            //@case1
             if(ppp==NULL)
             {
                 root->rbnode=pp;
-                pp->color=RB_BLACK;
                 return;
             }
 
             pp->color=RB_RED;
+
+            if(ppp->color==RB_BLACK)
+                return;
+
+            //reset node
 
             node=pp;
             parent=ppp;
@@ -119,49 +141,71 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
     } else{
         uncle=pp->left;
         if(uncle==NULL || uncle->color==RB_BLACK){
-            ppp=pp->parent;
+            DBG("parent is right,uncle black");
 
-            pp->parent=node;
-            pp->right=NULL;
+            //pre set
+            parent->left=node->right;
+            if(node->right!=NULL)
+               node->right->parent=parent;
+            pp->right=node->left;
+            if(node->left!=NULL)
+               node->left->parent=pp;
+
+
+            //set I
             node->left=pp;
             node->right=parent;
             node->color=RB_BLACK;
+            node->parent=ppp;
+
+            //set parent
+            parent->parent=node;
+
+            //set pp
+            pp->parent=node;
             pp->color=RB_RED;
 
+            //@case1
             if(ppp==NULL){
                 root->rbnode=node;
-                parent->parent=node;
-
                 return;
             }
 
-
+            //@case2
             if(ppp->right==pp)
                 ppp->right=node;
             else
                 ppp->left=node;
-            node->parent=ppp;
+
+
             return;
 
-        } else{
 
-            parent->left=node;
+        } else{
+            //set I
             node->parent=parent;
 
+            //set parent
+            parent->left=node;
             parent->color=RB_BLACK;
+
+
+            //set uncle
             uncle->color=RB_BLACK;
 
-
-            ppp=pp->parent;
-
+            //@case1
             if(ppp==NULL)
             {
                 root->rbnode=pp;
-                pp->color=RB_BLACK;
                 return;
             }
-
+            //@case2
             pp->color=RB_RED;
+
+            if(ppp->color==RB_BLACK)
+                return;
+
+            //reset node
 
             node=pp;
             parent=ppp;
@@ -175,13 +219,14 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
 
     at_right:
 
-    if(parent->color==RB_BLACK) {
-        parent->right = node;
-        node->parent = parent;
-        return;
-    }
+    DBG("at_right");
 
+    //parent is red
+
+    //set pp,ppp
     pp=parent->parent;
+    ppp=pp->parent;
+
 
 
     if(parent==pp->left){
@@ -190,50 +235,71 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
 
             DBG("into parent left , uncle black");
 
-            ppp=pp->parent;
+            //pre set
+            parent->right=node->left;
+            if(node->left!=NULL)
+                node->left->parent=parent;
+            pp->left=node->right;
+            if(node->right!=NULL)
+                node->right->parent=pp;
 
+            //set I
             node->left=parent;
             node->right=pp;
-            pp->parent=node;
-            parent->parent=node;
-            pp->left=NULL;
-
-            pp->color=RB_RED;
             node->color=RB_BLACK;
+            node->parent=ppp;
 
+            //set parent
+            parent->parent=node;
+
+
+            //set pp
+            pp->parent=node;
+            pp->color=RB_RED;
+
+            //set I parent
+            //@case1
             if(ppp==NULL){
                 root->rbnode=node;
                 return;
             }
-
-
+            //@case2
             if(ppp->right==pp)
                 ppp->right=node;
             else
                 ppp->left=node;
-            node->parent=ppp;
+
             return;
+
 
         } else{
 
             DBG("into parent left , uncle red");
-            parent->right=node;
+
+            //set I
             node->parent=parent;
 
+            //set parent
+            parent->right=node;
             parent->color=RB_BLACK;
+
+            //set uncle
             uncle->color=RB_BLACK;
 
-
-            ppp=pp->parent;
-
+            //set pp
+            //@case1
             if(ppp==NULL)
             {
                 root->rbnode=pp;
-                pp->color=RB_BLACK;
                 return;
             }
-
+            //@case2
             pp->color=RB_RED;
+
+            if(ppp->color==RB_BLACK)
+                return;
+
+            //reset node
 
             node=pp;
             parent=ppp;
@@ -246,57 +312,73 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
 
 
     } else{
+
         uncle=pp->left;
         if(uncle==NULL || uncle->color==RB_BLACK){
 
-            DBG("into parent right , uncle black");
-
-            ppp=pp->parent;
-
-            pp->right=parent->left;
-            parent->left=pp;
-            parent->right=node;
-            pp->parent=parent;
-            parent->color=RB_BLACK;
-            pp->color=RB_RED;
+            //set I
             node->parent=parent;
 
+            //set parent
+            pp->right=parent->left;//pre setting
+            if(parent->left!=NULL)
+                parent->left->parent=pp;
+            parent->left=pp;
+            parent->right=node;
+            parent->parent=ppp;
+            parent->color=RB_BLACK;
+
+            //set pp
+            pp->parent=parent;
+            pp->color=RB_RED;
+
+            //set parent parnet
+            //@case1
             if(ppp==NULL){
                 root->rbnode=parent;
-                parent->parent=NULL;
                 return;
             }
-
-
+            //@case2
             if(ppp->right==pp)
                 ppp->right=parent;
             else
                 ppp->left=parent;
-            parent->parent=ppp;
+            DBG("return");
             return;
 
         } else{
-            DBG("into parent right , uncle red");
-            parent->right=node;
+            DBG("into parent right , uncle red,parent=%lu,node=%lu,pp=%lu",(uint64_t)parent,(uint64_t)node,(uint64_t)pp);
+
+            //set I
             node->parent=parent;
 
+            //set parent
+            parent->right=node;
             parent->color=RB_BLACK;
+
+            //set uncle
             uncle->color=RB_BLACK;
 
+            //set pp
 
-            ppp=pp->parent;
-
+            //set pp parent
+            //@case 1
             if(ppp==NULL)
             {
                 root->rbnode=pp;
-                pp->color=RB_BLACK;
                 return;
             }
 
             pp->color=RB_RED;
 
+            if(ppp->color==RB_BLACK)
+                return;
+
+            //reset node
+
             node=pp;
             parent=ppp;
+
             if(parent->right==node)
                 goto at_right;
             else
@@ -304,6 +386,7 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
         }
 
     }
+
 
 }
 
@@ -312,15 +395,25 @@ ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,
     struct rbnode * pp;
     struct rbnode * ppp;
 
-    at_right:
 
+
+    //parent is black
     if(parent->color==RB_BLACK) {
         parent->right = node;
         node->parent = parent;
         return;
     }
 
+    at_right:
+
+    DBG("at_right");
+
+    //parent is red
+
+    //set pp,ppp
     pp=parent->parent;
+    ppp=pp->parent;
+
 
 
     if(parent==pp->left){
@@ -329,50 +422,71 @@ ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,
 
             DBG("into parent left , uncle black");
 
-            ppp=pp->parent;
+            //pre set
+            parent->right=node->left;
+            if(node->left!=NULL)
+                node->left->parent=parent;
+            pp->left=node->right;
+            if(node->right!=NULL)
+                node->right->parent=pp;
 
+            //set I
             node->left=parent;
             node->right=pp;
-            pp->parent=node;
-            parent->parent=node;
-            pp->left=NULL;
-
-            pp->color=RB_RED;
             node->color=RB_BLACK;
+            node->parent=ppp;
 
+            //set parent
+            parent->parent=node;
+
+
+            //set pp
+            pp->parent=node;
+            pp->color=RB_RED;
+
+            //set I parent
+            //@case1
             if(ppp==NULL){
                 root->rbnode=node;
                 return;
             }
-
-
+            //@case2
             if(ppp->right==pp)
                 ppp->right=node;
             else
                 ppp->left=node;
-            node->parent=ppp;
+
             return;
+
 
         } else{
 
             DBG("into parent left , uncle red");
-            parent->right=node;
+
+            //set I
             node->parent=parent;
 
+            //set parent
+            parent->right=node;
             parent->color=RB_BLACK;
+
+            //set uncle
             uncle->color=RB_BLACK;
 
-
-            ppp=pp->parent;
-
+            //set pp
+            //@case1
             if(ppp==NULL)
             {
                 root->rbnode=pp;
-                pp->color=RB_BLACK;
                 return;
             }
-
+            //@case2
             pp->color=RB_RED;
+
+            if(ppp->color==RB_BLACK)
+                return;
+
+            //reset node
 
             node=pp;
             parent=ppp;
@@ -385,57 +499,73 @@ ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,
 
 
     } else{
+
         uncle=pp->left;
         if(uncle==NULL || uncle->color==RB_BLACK){
 
-            DBG("into parent right , uncle black");
-
-            ppp=pp->parent;
-
-            pp->right=parent->left;
-            parent->left=pp;
-            parent->right=node;
-            pp->parent=parent;
-            parent->color=RB_BLACK;
-            pp->color=RB_RED;
+            //set I
             node->parent=parent;
 
+            //set parent
+            pp->right=parent->left;//pre setting
+            if(parent->left!=NULL)
+                parent->left->parent=pp;
+            parent->left=pp;
+            parent->right=node;
+            parent->parent=ppp;
+            parent->color=RB_BLACK;
+
+            //set pp
+            pp->parent=parent;
+            pp->color=RB_RED;
+
+            //set parent parnet
+            //@case1
             if(ppp==NULL){
                 root->rbnode=parent;
-                parent->parent=NULL;
                 return;
             }
-
-
+            //@case2
             if(ppp->right==pp)
                 ppp->right=parent;
             else
                 ppp->left=parent;
-            parent->parent=ppp;
+            DBG("return");
             return;
 
         } else{
-            DBG("into parent right , uncle red");
-            parent->right=node;
+            DBG("into parent right , uncle red,parent=%lu,node=%lu,pp=%lu",(uint64_t)parent,(uint64_t)node,(uint64_t)pp);
+
+            //set I
             node->parent=parent;
 
+            //set parent
+            parent->right=node;
             parent->color=RB_BLACK;
+
+            //set uncle
             uncle->color=RB_BLACK;
 
+            //set pp
 
-            ppp=pp->parent;
-
+            //set pp parent
+            //@case 1
             if(ppp==NULL)
             {
                 root->rbnode=pp;
-                pp->color=RB_BLACK;
                 return;
             }
 
             pp->color=RB_RED;
 
+            if(ppp->color==RB_BLACK)
+                return;
+
+            //reset node
+
             node=pp;
             parent=ppp;
+
             if(parent->right==node)
                 goto at_right;
             else
@@ -443,64 +573,80 @@ ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,
         }
 
     }
+
+
 
 
     at_left:
 
-    if(parent->color==RB_BLACK) {
-        parent->left = node;
-        node->parent = parent;
-        return;
-    }
-
     pp=parent->parent;
+    ppp=pp->parent;
+
+
 
     if(parent==pp->left){
         uncle=pp->right;
         if(uncle==NULL || uncle->color==RB_BLACK){
-            ppp=pp->parent;
-
-            pp->left=parent->right;
-            parent->left=node;
-            pp->parent=parent;
-            parent->right=pp;
+            DBG("parent is left,uncle black");
+            //set I
             node->parent=parent;
+
+            //set parent
             parent->color=RB_BLACK;
+            parent->left=node;
+            pp->left=parent->right;//special
+            if(parent->right!=NULL)
+                parent->right->parent=pp;
+            parent->right=pp;
+            parent->parent=ppp;
+
+            //set pp
+            pp->parent=parent;
             pp->color=RB_RED;
 
+            //set parent parent
+            //@case1
             if(ppp==NULL){
                 root->rbnode=parent;
-                parent->parent=NULL;
                 return;
             }
-
-
+            //@case2
             if(ppp->right==pp)
                 ppp->right=parent;
             else
                 ppp->left=parent;
-            parent->parent=ppp;
+
             return;
+
 
         } else{
 
-            parent->left=node;
+            DBG("parent is left,uncle red");
+
+            //set I
             node->parent=parent;
 
+            //set parent
             parent->color=RB_BLACK;
+            parent->left=node;
+
+            //set uncle
             uncle->color=RB_BLACK;
 
-
-            ppp=pp->parent;
-
+            //set pp
+            //@case1
             if(ppp==NULL)
             {
                 root->rbnode=pp;
-                pp->color=RB_BLACK;
                 return;
             }
 
             pp->color=RB_RED;
+
+            if(ppp->color==RB_BLACK)
+                return;
+
+            //reset node
 
             node=pp;
             parent=ppp;
@@ -514,49 +660,71 @@ ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,
     } else{
         uncle=pp->left;
         if(uncle==NULL || uncle->color==RB_BLACK){
-            ppp=pp->parent;
+            DBG("parent is right,uncle black");
 
-            pp->parent=node;
-            pp->right=NULL;
+            //pre set
+            parent->left=node->right;
+            if(node->right!=NULL)
+                node->right->parent=parent;
+            pp->right=node->left;
+            if(node->left!=NULL)
+                node->left->parent=pp;
+
+
+            //set I
             node->left=pp;
             node->right=parent;
             node->color=RB_BLACK;
+            node->parent=ppp;
+
+            //set parent
+            parent->parent=node;
+
+            //set pp
+            pp->parent=node;
             pp->color=RB_RED;
 
+            //@case1
             if(ppp==NULL){
                 root->rbnode=node;
-                parent->parent=node;
-
                 return;
             }
 
-
+            //@case2
             if(ppp->right==pp)
                 ppp->right=node;
             else
                 ppp->left=node;
-            node->parent=ppp;
+
+
             return;
 
-        } else{
 
-            parent->left=node;
+        } else{
+            //set I
             node->parent=parent;
 
+            //set parent
+            parent->left=node;
             parent->color=RB_BLACK;
+
+
+            //set uncle
             uncle->color=RB_BLACK;
 
-
-            ppp=pp->parent;
-
+            //@case1
             if(ppp==NULL)
             {
                 root->rbnode=pp;
-                pp->color=RB_BLACK;
                 return;
             }
-
+            //@case2
             pp->color=RB_RED;
+
+            if(ppp->color==RB_BLACK)
+                return;
+
+            //reset node
 
             node=pp;
             parent=ppp;
@@ -569,6 +737,8 @@ ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,
     }
 
 }
+
+
 
 
 
