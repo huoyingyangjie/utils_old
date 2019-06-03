@@ -33,7 +33,7 @@ ABS_INLINE struct rbnode64 * rbtree64_insert(struct rbroot * root,struct rbnode6
 
     DBG("rbtree64: searching last node");
 
-    while (tmp!=NULL){
+    do{
 
         DBG("rbtree64: key=%lu",((struct rbnode64*)tmp)->key);
 
@@ -43,7 +43,8 @@ ABS_INLINE struct rbnode64 * rbtree64_insert(struct rbroot * root,struct rbnode6
         last=tmp;
         tmp=((struct rbnode64*)tmp)->key > node->key ? tmp->left : tmp->right;
         DBG("rbtree64: tmp=%lu",(uint64_t)tmp);
-    }
+
+    }while(tmp!=NULL);
 
     DBG("rbtree64: inserting node");
 

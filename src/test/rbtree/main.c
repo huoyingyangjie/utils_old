@@ -117,6 +117,7 @@ void check_rbtree(struct rbroot * root){
 
     traverse_check_rbtree(root->rbnode,0,black_count);
 
+    INF("rbtree is ok");
 }
 
 
@@ -124,7 +125,7 @@ void check_rbtree(struct rbroot * root){
 
 int main(int argc,char *argv[]){
     struct rbroot *root=test_rbtree_insert_and_find();
-    //INF("check rbtree");
-    //check_rbtree(root);
+    INF("check rbtree");
+    check_rbtree(root);
     return 0;
 }
