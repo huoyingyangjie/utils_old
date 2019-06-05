@@ -6,6 +6,7 @@ Contains some algorithms and tools
 ### idea
 #### https://www.jianshu.com/p/0319d7781814
 #### https://blog.csdn.net/fei33423/article/details/79132930
+#### https://www.cnblogs.com/zhenbianshu/p/8185345.html?utm_source=debugrun&utm_medium=referral   good！！！
 ### visual view
 https://www.cs.usfca.edu/~galles/visualization/RedBlack.html
 ## free lock fifo
