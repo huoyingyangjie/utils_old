@@ -58,7 +58,25 @@ ABS_INLINE struct rbnode64 * rbtree64_insert(struct rbroot * root,struct rbnode6
     return NULL;
 }
 
-ABS_INLINE struct rbnode64 * rbtree_search(){
+ABS_INLINE struct rbnode64 * rbtree_search(struct rbroot * root,uint64_t key){
+
+    struct rbnode * tmp;
+
+    tmp=root->rbnode;
+    // root is null
+    if(unlikely(tmp==NULL))
+    {
+        return NULL;
+    }
+
+    do{
+        if( ((struct rbnode64*)tmp)->key==key ){
+            return (struct rbnode64*)tmp;
+        }
+
+        tmp=((struct rbnode64*)tmp)->key > key ? tmp->left : tmp->right;
+
+    }while(tmp!=NULL);
 
     return NULL;
 }
