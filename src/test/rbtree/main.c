@@ -17,7 +17,7 @@
 
 #define NODE_NUMBER (1000UL)
 
-#define NO_EXIST_TEST(x) node=rbtree_search(&root,x);if(node!=NULL) DIE("no exist test failed,key=%lu",x);
+#define NO_EXIST_TEST(x) node=rbtree64_search(&root,x);if(node!=NULL) DIE("no exist test failed,key=%lu",x);
 
 #define A1 {1635473346,617602265,1451396207,639755663,331245221,797084493,1031290962,1828366978,272289527,316365231,1416474063,591907484,1457966533,12,34,58,345,456456}
 
@@ -39,12 +39,12 @@ struct rbroot* test_rbtree_insert_and_find(){
 
     srand(time(0));
 
-    while (i<  keys_size)
+    while (i<  NODE_NUMBER)
     {
         node=&nodes[i];
         rbtree_init_node(&node->node);
 
-        node->key=keys[i];
+        node->key=rand();
         INF("inserting node-->%lu",node->key);
         rbtree64_insert(&root,node);
         ++i;
@@ -61,25 +61,43 @@ struct rbroot* test_rbtree_insert_and_find(){
 
     }
 
-    INF("exist test");
+    INF("delete test");
 
-    for(i=0;i<keys_size;++i){
-        node=rbtree_search(&root,keys[i]);
-        if(node==NULL||node->key!=keys[i]){
-            DIE("search error");
-        }
-        else
-            INF("exist key=%lu",node->key);
+    uint64_t key;
+
+    struct rbnode64 * delete_node;
+
+    for(i=0;i<1000;++i){
+        key=nodes[rand()%NODE_NUMBER].key;
+        INF("ready to delete %lu",key);
+        delete_node=rbtree64_delete(&root,key);
+        INF("key=%lu %s",key,delete_node==NULL?"no exist":"OK");
+
+        INF("check rbtree");
+        check_rbtree(&root);
     }
 
-    INF("no exist test");
-    NO_EXIST_TEST(1UL);
-    NO_EXIST_TEST(2UL);
-    NO_EXIST_TEST(3445646UL);
-    NO_EXIST_TEST(1263575UL);
-    NO_EXIST_TEST(7542254UL);
 
-    INF("no exist test:passed");
+
+//    INF("exist test");
+//
+//    for(i=0;i<keys_size;++i){
+//        node=rbtree64_search(&root,keys[i]);
+//        if(node==NULL||node->key!=keys[i]){
+//            DIE("search error");
+//        }
+//        else
+//            INF("exist key=%lu",node->key);
+//    }
+//
+//    INF("no exist test");
+//    NO_EXIST_TEST(1UL);
+//    NO_EXIST_TEST(2UL);
+//    NO_EXIST_TEST(3445646UL);
+//    NO_EXIST_TEST(1263575UL);
+//    NO_EXIST_TEST(7542254UL);
+//
+//    INF("no exist test:passed");
     return &root;
 
 }

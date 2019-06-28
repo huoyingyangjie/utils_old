@@ -58,7 +58,7 @@ ABS_INLINE struct rbnode64 * rbtree64_insert(struct rbroot * root,struct rbnode6
     return NULL;
 }
 
-ABS_INLINE struct rbnode64 * rbtree_search(struct rbroot * root,uint64_t key){
+ABS_INLINE struct rbnode64 * rbtree64_search(struct rbroot * root,uint64_t key){
 
     struct rbnode * tmp;
 
@@ -83,5 +83,36 @@ ABS_INLINE struct rbnode64 * rbtree_search(struct rbroot * root,uint64_t key){
 
 
 
+ABS_INLINE struct rbnode64 * rbtree64_delete(struct rbroot * root,uint64_t key){
+    struct rbnode * tmp;
+
+    tmp=root->rbnode;
+    // root is null
+    if(unlikely(tmp==NULL))
+    {
+        return NULL;
+    }
+
+    do{
+        if( ((struct rbnode64*)tmp)->key==key ){
+            rbtree_delete(tmp,root);
+            return (struct rbnode64*)tmp;
+        }
+
+        tmp=((struct rbnode64*)tmp)->key > key ? tmp->left : tmp->right;
+
+    }while(tmp!=NULL);
+
+    return NULL;
+}
+
+typedef void (*rbtree64_callback)(struct rbnode64 *node) ;
+
+ABS_INLINE void rbtree64_all(struct rbroot * root,rbtree64_callback callback){
+    struct rbnode * node;
+    for (node=rbtree_first(root);node;node=rbtree_next(node)) {
+        callback(node);
+    }
+}
 
 #endif //UTILS_RBTREE64_H

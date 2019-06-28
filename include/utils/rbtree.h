@@ -421,6 +421,244 @@ ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,
 }
 
 
+ABS_INLINE void rbtree_change_child(struct rbnode * src,struct rbnode * dst, struct rbnode * parent,struct rbroot * root){
+    if(parent){
+        if(parent->left==src)
+            parent->left=dst;
+        else
+            parent->right=dst;
+    }
+    else
+        root->rbnode=dst;
+
+}
+
+ABS_INLINE struct rbnode * rbtree_delete_pre(struct rbnode * node,struct rbroot * root){
+    struct rbnode * child=node->right;
+    struct rbnode * tmp=node->left;
+    struct rbnode * parent,*rebalance;
+
+    if(!tmp){
+        parent=node->parent;
+        rbtree_change_child(node,child,parent,root);
+        if(child)
+        {
+            child->parent=parent;
+            child->color=node->color;
+            rebalance=NULL;
+        }
+        else
+            rebalance=node->color==RB_BLACK?parent:NULL;
+        tmp=parent;
+    }
+    else if(!child){
+        parent=node->parent;
+        tmp->parent=parent;
+        tmp->color=node->color;
+        rbtree_change_child(node,tmp,parent,root);
+        rebalance=NULL;
+        tmp=parent;
+    }
+    else
+    {
+        struct rbnode * successor=child,*child2;
+        tmp=child->left;
+        if(!tmp){
+            parent=successor;
+            child2=successor->right;
+        }
+        else
+        {
+            do{
+                parent=successor;
+                successor=tmp;
+                tmp=tmp->left;
+            }while (tmp);
+            child2=successor->right;
+            parent->left=child2;
+            successor->right=child;
+            child->parent=successor;
+        }
+        tmp=node->left;
+        successor->left=tmp;
+        tmp->parent=successor;
+
+        tmp=node->parent;
+        rbtree_change_child(node,successor,tmp,root);
+
+        if(child2){
+            successor->parent=node->parent;
+            successor->color=node->color;
+            child2->parent=parent;
+            child2->color=RB_BLACK;
+            rebalance=NULL;
+        }
+        else
+        {
+            rebalance=successor->color==RB_BLACK?parent:NULL;
+            successor->parent=node->parent;
+            successor->color=node->color;
+        }
+        tmp=successor;//maybe useless
+    }
+
+    return rebalance;
+}
+
+
+
+ABS_INLINE void rbtree_rotate_set_parents(struct rbnode * src,struct rbnode *dst,struct rbroot * root,uint64_t color) {
+    struct rbnode * parent=src->parent;
+    dst->parent=src->parent;
+    dst->color=src->color;
+    src->parent=dst;
+    src->color=color;
+    rbtree_change_child(src,dst,parent,root);
+}
+
+
+ABS_INLINE void rbtree_delete_balance(struct rbnode *parent,struct rbroot * root){
+    struct rbnode *node=NULL,*sibling,*tmp1,*tmp2;
+    while (1) {
+        sibling = parent->right;
+        if (node != sibling) {
+            if (sibling->color == RB_RED) {
+                tmp1 = sibling->left;
+                parent->right = tmp1;
+                sibling->left = parent;
+                tmp1->parent = parent;
+                tmp1->color = RB_BLACK;
+                rbtree_rotate_set_parents(parent, sibling, root, RB_RED);
+                sibling = tmp1;
+            }
+            tmp1 = sibling->right;
+            if (!tmp1 || tmp1->color == RB_BLACK) {
+                tmp2 = sibling->left;
+                if (!tmp2 || tmp2->color == RB_BLACK) {
+                    sibling->parent = parent;
+                    sibling->color = RB_RED;
+                    if (parent->color == RB_RED)
+                        parent->color = RB_BLACK;
+                    else {
+                        node = parent;
+                        parent = node->parent;
+                        if (parent)
+                            continue;
+                    }
+                    break;
+                }
+                tmp1 = tmp2->right;
+                sibling->left = tmp1;
+                tmp2->right = sibling;
+                parent->right = tmp2;
+                if (tmp1) {
+                    tmp1->parent = sibling;
+                    tmp1->color = RB_BLACK;
+                }
+                tmp1 = sibling;
+                sibling = tmp2;
+            }
+            tmp2 = sibling->left;
+            parent->right = tmp2;
+            sibling->left = parent;
+            tmp1->parent = sibling;
+            tmp1->color = RB_BLACK;
+            if (tmp2)
+                tmp2->parent = parent;
+            rbtree_rotate_set_parents(parent, sibling, root, RB_BLACK);
+            break;
+        } else {
+            sibling = parent->left;
+            if (sibling->color == RB_RED) {
+                tmp1 = sibling->right;
+                parent->left = tmp1;
+                sibling->right = parent;
+                tmp1->parent = parent;
+                tmp1->color = RB_BLACK;
+                rbtree_rotate_set_parents(parent, sibling, root, RB_RED);
+                sibling = tmp1;
+            }
+            tmp1 = sibling->left;
+            if (!tmp1 || tmp1->color == RB_BLACK) {
+                tmp2 = sibling->right;
+                if (!tmp2 || tmp2->color == RB_BLACK) {
+                    sibling->parent = parent;
+                    sibling->color = RB_RED;
+
+                    if (parent->color == RB_RED)
+                        parent->color = RB_BLACK;
+                    else {
+                        node = parent;
+                        parent = node->parent;
+
+                        if (parent)
+                            continue;
+                    }
+                    break;
+                }
+                tmp1 = tmp2->left;
+                sibling->right = tmp1;
+                tmp2->left = sibling;
+                parent->left = tmp2;
+                if (tmp1) {
+                    tmp1->parent = sibling;
+                    tmp1->color = RB_BLACK;
+                }
+                tmp1 = sibling;
+                sibling = tmp2;
+            }
+            tmp2 = sibling->right;
+            parent->left = tmp2;
+            sibling->right = parent;
+            tmp1->parent = sibling;
+            tmp1->color = RB_BLACK;
+            if (tmp2)
+                tmp2->parent = parent;
+            rbtree_rotate_set_parents(parent, sibling, root, RB_BLACK);
+            break;
+        }
+    }
+
+}
+
+
+ABS_INLINE void rbtree_delete(struct rbnode * node , struct rbroot * root){
+            struct rbnode * rebalance=rbtree_delete_pre(node,root);
+            if(rebalance)
+                rbtree_delete_balance(rebalance,root);
+}
+
+
+
+
+struct rbnode * rbtree_first(struct rbroot * root)
+{
+    struct rbnode * n=root->rbnode;
+    if(!n)
+        return NULL;
+    while (n->left)
+        n=n->left;
+    return n;
+}
+
+struct rbnode * rbtree_next(struct rbnode * node)
+{
+    struct rbnode * parent;
+    if(node->parent==NULL)
+        return NULL;
+    if(node->right)
+    {
+        node=node->right;
+        while (node->left)
+            node=node->left;
+        return node;
+    }
+
+    while ((parent=node->parent)&&node==parent->right)
+        node=parent;
+
+    return parent;
+}
 
 
 
