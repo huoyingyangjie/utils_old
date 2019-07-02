@@ -23,13 +23,46 @@
 
 
 #define A2 {899586652,654339113,1250575619,2067769305,1506386366,101035835,1718995144,331199135,1058168830,67730304,2138020356,1076550924,153956473,68293714,1554057185,168263314,2056467781,1716027025,10402866,1273790203,44107102,824123299,304271307}
+
+
+void print_node(struct rbnode64 * node64){
+    printf("\n");
+    printf("node:key=%lu,self=%lu,parent=%lu,left=%lu,right=%lu,color=%s\n",node64->key,(uint64_t)(&node64->node),(uint64_t)node64->node.parent,(uint64_t)node64->node.left,(uint64_t)node64->node.right,
+    node64->node.color==RB_RED?"red":"black");
+    printf("\n");
+}
+
+
+void check_rule4(struct rbnode64 * node64){
+    struct rbnode * node=&node64->node;
+    if(node->color==RB_BLACK)
+        return;
+    if(node->parent!=NULL)
+    {
+        if(node->parent->color==RB_RED)
+            DIE("self=%lu is red and parent=%lu is red",node64->key,((struct rbnode64*)node->parent)->key);
+    }
+
+    if(node->left!=NULL)
+    {
+        if(node->left->color==RB_RED)
+            DIE("self=%lu is red and left child=%lu is red",node64->key,((struct rbnode64*)node->left)->key);
+    }
+
+    if(node->right!=NULL)
+    {
+        if(node->right->color==RB_RED)
+            DIE("self=%lu is red and right=%lu is red",node64->key,((struct rbnode64*)node->right)->key);
+    }
+
+}
+
 struct rbroot* test_rbtree_insert_and_find(){
 
     uint64_t i=0;
     uint64_t j=0;
     static struct rbroot root;
     struct rbnode64 * node;
-    rbtree_init_root(&root);
 
     static struct rbnode64 nodes[NODE_NUMBER];
 
@@ -37,7 +70,13 @@ struct rbroot* test_rbtree_insert_and_find(){
 
     uint64_t keys_size=sizeof(keys)/ sizeof(uint64_t);
 
+    again:
+
+    i=0;
+
     srand(time(0));
+
+    rbtree_init_root(&root);
 
     while (i<  NODE_NUMBER)
     {
@@ -53,13 +92,22 @@ struct rbroot* test_rbtree_insert_and_find(){
         DBG("root=%lu",((struct rbnode64*)root.rbnode)->key);
         for(j=0;j<i;++j) {
             node=&nodes[j];
-            printf("CHECK left=%020lu right=%020lu self=%020lu parent=%020lu color=%s\n",node->node.left==NULL?0:((struct rbnode64*)(node->node.left))->key,
+            printf("CHECK left=%020lu right=%020lu self=%020lu parent=%020lu color=%s selfptr=%lu\n",node->node.left==NULL?0:((struct rbnode64*)(node->node.left))->key,
                 node->node.right==NULL?0:((struct rbnode64*)(node->node.right))->key,
-                   node->key,node->node.parent==NULL?0:((struct rbnode64*)(node->node.parent))->key,node->node.color==RB_RED?"red":"black");
+                   node->key,node->node.parent==NULL?0:((struct rbnode64*)(node->node.parent))->key,node->node.color==RB_RED?"red":"black",(uint64_t)node);
         }
+
+        rbtree64_all(&root,check_rule4);
+
+        is_balance(&root);
+
+        check_rbtree(&root);
 
 
     }
+
+
+
 
     INF("delete test");
 
@@ -67,17 +115,21 @@ struct rbroot* test_rbtree_insert_and_find(){
 
     struct rbnode64 * delete_node;
 
-    for(i=0;i<1000;++i){
+    for(i=0;i<100;++i){
         key=nodes[rand()%NODE_NUMBER].key;
         INF("ready to delete %lu",key);
         delete_node=rbtree64_delete(&root,key);
         INF("key=%lu %s",key,delete_node==NULL?"no exist":"OK");
 
+        rbtree64_all(&root,print_node);
+        rbtree64_all(&root,check_rule4);
         INF("check rbtree");
+        is_balance(&root);
         check_rbtree(&root);
     }
 
 
+     goto again;
 
 //    INF("exist test");
 //
@@ -100,6 +152,52 @@ struct rbroot* test_rbtree_insert_and_find(){
 //    INF("no exist test:passed");
     return &root;
 
+}
+
+void  is_balance(struct rbroot * root){
+    if(root->rbnode==NULL)
+        return;
+    if(root->rbnode->color==RB_RED)
+        DIE("root is red");
+    int count=0;
+    struct rbnode * cur=root->rbnode;
+    while (cur!=NULL){
+        if(cur->color==RB_BLACK)
+            ++count;
+        cur=cur->left;
+    }
+    int num=0;
+
+    _is_balance(root->rbnode,count,num);
+}
+
+
+void _is_balance(struct rbnode * node,int count,int num){
+    if(node==NULL)
+        return;
+    if(node->color==RB_RED)
+    {
+        if(node->parent==NULL)
+        {
+            DIE("node is red,but parent is null");
+        }
+        if(node->parent->color==RB_RED)
+            DIE("continue red node");
+    }
+
+    if(node->color==RB_BLACK)
+        ++num;
+
+    if(node->left==NULL&&node->right==NULL)
+    {
+        if(num!=count)
+        {
+            DIE("black node different");
+        }
+    }
+
+    _is_balance(node->left,count,num);
+    _is_balance(node->right,count,num);
 }
 
 uint64_t get_rbtree_black_count(struct rbroot * root){

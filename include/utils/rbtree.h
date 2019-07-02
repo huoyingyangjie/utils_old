@@ -81,7 +81,14 @@ ABS_INLINE void rbtree_init_root(struct rbroot * root){
             return;\
             }\
             pp->color=RB_RED;\
+            if(ppp->color==RB_BLACK)\
             return;\
+            node=pp;\
+            parent=ppp;\
+            if(parent->right==node)\
+            {goto right;}\
+            else\
+            {goto left;}\
             }\
             } else{\
             uncle=pp->left;\
@@ -116,7 +123,14 @@ ABS_INLINE void rbtree_init_root(struct rbroot * root){
             return;\
             }\
             pp->color=RB_RED;\
+            if(ppp->color==RB_BLACK)\
             return;\
+            node=pp;\
+            parent=ppp;\
+            if(parent->right==node)\
+            {goto right;}\
+            else\
+            {goto left;}\
             }\
             }\
 
@@ -158,7 +172,15 @@ ABS_INLINE void rbtree_init_root(struct rbroot * root){
             return;\
             }\
             pp->color=RB_RED;\
-            return;}\
+            if(ppp->color==RB_BLACK)\
+            return;\
+            node=pp;\
+            parent=ppp;\
+            if(parent->right==node)\
+            {goto right;}\
+            else\
+            {goto left;}\
+            }\
             } else{\
             uncle=pp->left;\
             if(uncle==NULL || uncle->color==RB_BLACK){\
@@ -194,7 +216,14 @@ ABS_INLINE void rbtree_init_root(struct rbroot * root){
             return;\
             }\
             pp->color=RB_RED;\
+            if(ppp->color==RB_BLACK)\
             return;\
+            node=pp;\
+            parent=ppp;\
+            if(parent->right==node)\
+            {goto right;}\
+            else\
+            {goto left;}\
             }\
             }\
 
@@ -239,11 +268,12 @@ ABS_INLINE void rbtree_init_root(struct rbroot * root){
         node=pp;\
         parent=ppp;\
         if(parent->right==node)\
-        {\
+        {right:\
         INSERT_RIGHT_SECOND()\
         }\
         else\
-        {INSERT_LEFT_SECOND()}\
+        {left:\
+            INSERT_LEFT_SECOND()}\
         }\
         } else{\
         uncle=pp->left;\
@@ -332,9 +362,11 @@ ABS_INLINE void rbtree_init_root(struct rbroot * root){
         node=pp;\
         parent=ppp;\
         if(parent->right==node)\
-        {INSERT_RIGHT_SECOND()}\
+        {   right:\
+            INSERT_RIGHT_SECOND()}\
         else\
-        {INSERT_LEFT_SECOND()}\
+        {   left:\
+            INSERT_LEFT_SECOND()}\
         }\
         } else{\
         uncle=pp->left;\
@@ -397,6 +429,8 @@ ABS_INLINE void rbtree_insert_left(struct rbroot * root,struct rbnode * parent,s
 
     INSERT_LEFT_FIRST()
 
+
+
 }
 
 ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,struct rbnode * node){
@@ -415,8 +449,6 @@ ABS_INLINE void rbtree_insert_right(struct rbroot * root,struct rbnode * parent,
 
 
     INSERT_RIGHT_FIRST()
-
-
 
 }
 
@@ -644,8 +676,7 @@ struct rbnode * rbtree_first(struct rbroot * root)
 struct rbnode * rbtree_next(struct rbnode * node)
 {
     struct rbnode * parent;
-    if(node->parent==NULL)
-        return NULL;
+
     if(node->right)
     {
         node=node->right;
