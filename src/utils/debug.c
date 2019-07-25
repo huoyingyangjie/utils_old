@@ -19,7 +19,7 @@
 #include <stdlib.h>
 
 #define BACKTRACE_SIZE (16U)
-#define FILE_NAME_WIDTH (3U)
+#define FILE_NAME_WIDTH (5U)
 #define TIMESTAMP_WIDTH (27U)
 
 void print_hex(const void * buf,size_t len){
@@ -70,7 +70,7 @@ void debug_print(const char *level,const char *file,const int line,const char *f
 
     if(localtime_r(&tv.tv_sec,&ltm)==NULL)
     {
-        sprintf(ts,"local time error            ");
+        sprintf(ts,"local time error           ");
         goto ptn;
     }
 
