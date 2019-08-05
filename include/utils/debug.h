@@ -6,6 +6,7 @@
 #define UTILS_DEBUG_H
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "gversion.h"
 
 #define VERSION_FMT_LEN (64U)
@@ -31,7 +32,7 @@ static char * get_build_timestamp(){
 }
 
 
-char * strfversion(){
+static char * strfversion(){
     static char version[VERSION_FMT_LEN]="";
     snprintf(version,VERSION_FMT_LEN,"%d.%d %s %s at %s",get_major_version(),get_minor_version(),get_version_branch(),get_version_hash(),get_build_timestamp());
     return version;

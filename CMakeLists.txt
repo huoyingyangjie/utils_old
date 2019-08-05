@@ -38,3 +38,9 @@ aux_source_directory(./src/test/rbtree rbtree_src)
 include_directories(./include/)
 add_executable(rbtree ${rbtree_src})
 target_link_libraries(rbtree utils)
+
+
+aux_source_directory(./src/test/xrb xrb_src)
+include_directories(./include/)
+add_executable(xrb ${xrb_src})
+target_link_libraries(xrb utils)
