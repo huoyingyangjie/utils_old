@@ -1,7 +1,7 @@
 //
 // Created by yangjiegogogo@gmail.com on 8/21/19.
 //
-
+#define _GNU_SOURCE
 #include <pthread.h>
 #include <sched.h>
 #include "utils/debug.h"
