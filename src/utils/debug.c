@@ -96,7 +96,7 @@ void debug_print_nos(const char *level,const char *file,const int line,const cha
 }
 
 
-static void  debug_print_s(const char *level,const char *file,const int line,const char *fmt,...){
+void  debug_print_s(const char *level,const char *file,const int line,const char *fmt,...){
     va_list args;
     pthread_mutex_lock(&debug_mutex);
 
