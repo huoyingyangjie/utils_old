@@ -14,13 +14,15 @@
 #include <sys/syscall.h>
 #include <signal.h>
 #include <execinfo.h>
-#include "debug.h"
+#include "utils/debug.h"
 #include <pthread.h>
 #include <stdlib.h>
 
 #define BACKTRACE_SIZE (16U)
 #define FILE_NAME_WIDTH (5U)
 #define TIMESTAMP_WIDTH (27U)
+
+#define ERR_NOS(fmt,args...) ({debug_print_nos("ERR",__FILE__,__LINE__,fmt,##args);})
 
 void print_hex(const void * buf,size_t len){
     size_t i=0;
@@ -38,12 +40,14 @@ void print_hex(const void * buf,size_t len){
 
 static pthread_mutex_t debug_mutex=PTHREAD_MUTEX_INITIALIZER;
 
-void debug_print(const char *level,const char *file,const int line,const char *fmt,...){
-    pthread_mutex_lock(&debug_mutex);
+
+void debug_print_nos(const char *level,const char *file,const int line,const char *fmt,...){
+
     char name[FILE_NAME_WIDTH+1];
     size_t i=0;
     const char *ptr=NULL;
     size_t  len=0;
+    int flag=0;
     struct timeval tv;
     char ts[TIMESTAMP_WIDTH+1];
     struct tm ltm;
@@ -51,16 +55,19 @@ void debug_print(const char *level,const char *file,const int line,const char *f
 
     bzero(name,sizeof(name));
     ptr=strrchr(file,'/')?(strrchr(file,'/')+1):file;
-
-    for(i=0;i<(sizeof(name)-1);++i){
-        if((*ptr)=='.'||(*ptr)=='\0')
-            break;
-        *(name+i)=*ptr;
-        ptr=ptr+1;
-    }
+    strncpy(name,ptr,FILE_NAME_WIDTH);
     len=strlen(name);
-    memmove(name+sizeof(name)-1-len,name,len>FILE_NAME_WIDTH?FILE_NAME_WIDTH:len);
-    memset(name,'-', sizeof(name)-1-len);
+    flag=0;
+    for(i=0;i<len;++i){
+        if(name[i]=='.')
+        {
+            name[i]=' ';
+            flag=1;
+            continue;
+        }
+        if(flag==1)
+            name[i]=' ';
+    }
 
     if(gettimeofday(&tv,NULL)!=0)
     {
@@ -85,8 +92,20 @@ void debug_print(const char *level,const char *file,const int line,const char *f
     vprintf(fmt,args);
     printf("\n");
     va_end(args);
-    pthread_mutex_unlock(&debug_mutex);
 
+}
+
+
+static void  debug_print_s(const char *level,const char *file,const int line,const char *fmt,...){
+    va_list args;
+    pthread_mutex_lock(&debug_mutex);
+
+    va_start(args,fmt);
+
+    debug_print_nos(level,file,line,fmt,args);
+
+    va_end(args);
+    pthread_mutex_unlock(&debug_mutex);
 }
 
 static void segv_backtrace(int signo){
@@ -94,14 +113,14 @@ static void segv_backtrace(int signo){
     void *buffer[BACKTRACE_SIZE];
     char **strings;
     nptrs=backtrace(buffer,BACKTRACE_SIZE);
-    ERR("segment fault,as follows:");
+    ERR_NOS("segment fault,as follows:");
     printf("Dump stack start...\n");
     printf("backtrace() returned %d addresses\n",nptrs);
 
     strings=backtrace_symbols(buffer,nptrs);
     if(strings==NULL)
     {
-        ERR("backtrace_symbols failed,\"man backtrace_symbols\" no errno");
+        ERR_NOS("backtrace_symbols failed,\"man backtrace_symbols\" no errno");
         goto exit;
     }
 
