@@ -41,17 +41,15 @@ void print_hex(const void * buf,size_t len){
 static pthread_mutex_t debug_mutex=PTHREAD_MUTEX_INITIALIZER;
 
 
-void debug_print_nos(const char *level,const char *file,const int line,const char *fmt,...){
-
+static void print_foreword(const char *level,const char *file,const int line){
     char name[FILE_NAME_WIDTH+1];
     size_t i=0;
     const char *ptr=NULL;
     size_t  len=0;
-    int flag=0;
+    int  flag=0;
     struct timeval tv;
     char ts[TIMESTAMP_WIDTH+1];
     struct tm ltm;
-    va_list args;
 
     bzero(name,sizeof(name));
     ptr=strrchr(file,'/')?(strrchr(file,'/')+1):file;
@@ -87,7 +85,11 @@ void debug_print_nos(const char *level,const char *file,const int line,const cha
     ptn:
 
     printf("[%s][%s][%-4d][%-7d][%-7ld][%s]:",ts,name,line,getpid(),syscall(__NR_gettid),level);
+}
 
+void debug_print_nos(const char *level,const char *file,const int line,const char *fmt,...){
+    va_list args;
+    print_foreword(level,file,line);
     va_start(args,fmt);
     vprintf(fmt,args);
     printf("\n");
@@ -96,14 +98,13 @@ void debug_print_nos(const char *level,const char *file,const int line,const cha
 }
 
 
-void  debug_print_s(const char *level,const char *file,const int line,const char *fmt,...){
-    va_list args;
+void debug_print_s(const char *level,const char *file,const int line,const char *fmt,...){
     pthread_mutex_lock(&debug_mutex);
-
+    va_list args;
+    print_foreword(level,file,line);
     va_start(args,fmt);
-
-    debug_print_nos(level,file,line,fmt,args);
-
+    vprintf(fmt,args);
+    printf("\n");
     va_end(args);
     pthread_mutex_unlock(&debug_mutex);
 }
