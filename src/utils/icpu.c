@@ -25,15 +25,21 @@ int cpu_bpp_accelerate(int cpu_id, int priority){
     CPU_ZERO(&mask);
     CPU_SET(cpu_id,&mask);
 
-    if((ret=pthread_attr_init(&attr))!=0)
+    ret=pthread_attr_init(&attr);
+    if(ret!=0)
         return ret;
 
-    if((ret=pthread_setaffinity_np(pthread_self(), sizeof(mask),&mask))!=0)
+    ret=pthread_setaffinity_np(pthread_self(), sizeof(mask),&mask);
+    if(ret!=0)
         return ret;
 
+    ret=pthread_attr_setschedpolicy(&attr,SCHED_RR);
+    if(ret!=0)
+        return ret;
+    
     param.__sched_priority=priority;
-
-    if((ret=pthread_attr_setschedparam(&attr,&param))!=0)
+    ret=pthread_attr_setschedparam(&attr,&param);
+    if(ret!=0)
         return ret;
 
     return 0;
