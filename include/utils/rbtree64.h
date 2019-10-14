@@ -5,8 +5,8 @@
 #ifndef UTILS_RBTREE64_H
 #define UTILS_RBTREE64_H
 
-#include "rbtree.h"
-#include "debug.h"
+#include "utils/rbtree.h"
+#include "utils/debug.h"
 
 struct rbnode64 {
     struct rbnode node;
@@ -111,7 +111,7 @@ typedef void (*rbtree64_callback)(struct rbnode64 *node) ;
 ABS_INLINE void rbtree64_all(struct rbroot * root,rbtree64_callback callback){
     struct rbnode * node;
     for (node=rbtree_first(root);node;node=rbtree_next(node)) {
-        callback(node);
+        callback((struct rbnode64*)node);
     }
 }
 
